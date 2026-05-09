@@ -1,72 +1,51 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import Groq from "groq-sdk";
 
 dotenv.config();
 
 const app = express();
 
+// ✅ IMPORTANT FIXES
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); // REQUIRED or req.body = {}
 
-// 🔐 Safe Groq initialization
-const groq = new Groq({
-    apiKey: process.env.GROQ_API_KEY
-});
+const PORT = process.env.PORT || 10000;
 
-// ✅ Health check route
+// Health route (fixes / 404 confusion)
 app.get("/", (req, res) => {
-    res.send("Cognivex+ backend running 🚀");
+  res.send("Cognivex backend is running 🚀");
 });
 
-// 🤖 Chat endpoint
+// Chat route
 app.post("/api/chat", async (req, res) => {
-    try {
-        console.log("🔥 HIT /api/chat");
-        console.log("BODY:", req.body);
+  try {
+    const { message } = req.body;
 
-        // ✅ Safe message extraction
-        const message = req.body?.message;
+    console.log("🔥 HIT /api/chat");
+    console.log("BODY:", req.body);
 
-        if (!message || message.trim() === "") {
-            return res.status(400).json({
-                error: "Message is required"
-            });
-        }
-
-        // 🤖 Call Groq API
-        const completion = await groq.chat.completions.create({
-            model: "llama-3.3-70b-versatile",
-            messages: [
-                {
-                    role: "system",
-                    content: "You are Cognivex+, a helpful AI assistant."
-                },
-                {
-                    role: "user",
-                    content: message
-                }
-            ]
-        });
-
-        // ✅ Send response
-        return res.json({
-            reply: completion.choices[0].message.content
-        });
-
-    } catch (error) {
-        console.error("❌ Backend Error:", error);
-
-        return res.status(500).json({
-            error: error.message || "Internal Server Error"
-        });
+    if (!message) {
+      return res.status(400).json({
+        error: "Message is required",
+      });
     }
-});
 
-// 🌐 Port binding for Render
-const PORT = process.env.PORT || 3000;
+    // 🔁 TEMP RESPONSE (replace with Groq later)
+    const reply = `You said: ${message}`;
+
+    return res.json({
+      reply,
+    });
+
+  } catch (error) {
+    console.error("Server Error:", error);
+    res.status(500).json({
+      error: "Internal Server Error",
+    });
+  }
+});
 
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
