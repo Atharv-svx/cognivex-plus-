@@ -9,10 +9,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("Cognivex backend running 🚀");
-});
-
 app.post("/api/chat", async (req, res) => {
   try {
     const message = req.body?.message;
@@ -20,6 +16,53 @@ app.post("/api/chat", async (req, res) => {
     if (!message) {
       return res.status(400).json({ error: "Message is required" });
     }
+
+    const response = await fetch(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://cognivex-plus-2.onrender.com",
+          "X-Title": "Cognivex AI"
+        },
+        body: JSON.stringify({
+          model: "openai/gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are Cognivex AI, a helpful assistant for students."
+            },
+            {
+              role: "user",
+              content: message
+            }
+          ]
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    console.log("OPENROUTER RESPONSE:", data);
+
+    if (!response.ok) {
+      return res.status(500).json({
+        error: "AI request failed",
+        details: data
+      });
+    }
+
+    res.json({
+      reply: data.choices?.[0]?.message?.content
+    });
+  } catch (err) {
+    console.error("SERVER ERROR:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -30,7 +73,7 @@ app.post("/api/chat", async (req, res) => {
         "X-Title": "Cognivex AI"
       },
       body: JSON.stringify({
-        model: "meta-llama/llama-3.1-8b-instruct",
+        model: "model: "openai/gpt-4o-mini"
         messages: [
           {
             role: "system",
