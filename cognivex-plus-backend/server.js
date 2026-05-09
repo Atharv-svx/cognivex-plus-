@@ -1,51 +1,57 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import Groq from "groq-sdk";
 
 dotenv.config();
 
 const app = express();
 
-// ✅ IMPORTANT FIXES
 app.use(cors());
-app.use(express.json()); // REQUIRED or req.body = {}
+app.use(express.json());
 
-const PORT = process.env.PORT || 10000;
-
-// Health route (fixes / 404 confusion)
-app.get("/", (req, res) => {
-  res.send("Cognivex backend is running 🚀");
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY,
 });
 
-// Chat route
+app.get("/", (req, res) => {
+  res.send("Cognivex AI backend is running 🚀");
+});
+
 app.post("/api/chat", async (req, res) => {
   try {
     const { message } = req.body;
 
-    console.log("🔥 HIT /api/chat");
-    console.log("BODY:", req.body);
-
     if (!message) {
-      return res.status(400).json({
-        error: "Message is required",
-      });
+      return res.status(400).json({ error: "Message is required" });
     }
 
-    // 🔁 TEMP RESPONSE (replace with Groq later)
-    const reply = `You said: ${message}`;
-
-    return res.json({
-      reply,
+    const completion = await groq.chat.completions.create({
+      model: "llama3-70b-8192",
+      messages: [
+        {
+          role: "system",
+          content: "You are Cognivex AI, a helpful assistant for students.",
+        },
+        {
+          role: "user",
+          content: message,
+        },
+      ],
     });
+
+    const reply = completion.choices[0].message.content;
+
+    res.json({ reply });
 
   } catch (error) {
-    console.error("Server Error:", error);
-    res.status(500).json({
-      error: "Internal Server Error",
-    });
+    console.error(error);
+    res.status(500).json({ error: "AI request failed" });
   }
 });
 
+const PORT = process.env.PORT || 10000;
+
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log("Server running on port", PORT);
 });
