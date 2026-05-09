@@ -1,19 +1,26 @@
-import dotenv from "dotenv";
-dotenv.config();
-
 import express from "express";
 import cors from "cors";
+import dotenv from "dotenv";
 import Groq from "groq-sdk";
+
+dotenv.config();
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
+// Initialize Groq safely
 const groq = new Groq({
     apiKey: process.env.GROQ_API_KEY
 });
 
+// Health check route
+app.get("/", (req, res) => {
+    res.send("Cognivex+ backend running 🚀");
+});
+
+// Chat route
 app.post("/api/chat", async (req, res) => {
     try {
         console.log("🔥 HIT /api/chat");
@@ -21,20 +28,9 @@ app.post("/api/chat", async (req, res) => {
 
         const message = req.body?.message;
 
-        if (!message) {
+        if (!message || message.trim() === "") {
             return res.status(400).json({
                 error: "Message is required"
-            });
-        }
-
-app.post("/api/chat", async (req, res) => {
-    try {
-
-        const message = req.body.message;
-
-        if (!message) {
-            return res.status(400).json({
-                error: "No message provided"
             });
         }
 
@@ -52,20 +48,19 @@ app.post("/api/chat", async (req, res) => {
             ]
         });
 
-        res.json({
+        return res.json({
             reply: completion.choices[0].message.content
         });
 
     } catch (error) {
-
-        console.error(error);
-
-        res.status(500).json({
+        console.error("❌ Backend Error:", error);
+        return res.status(500).json({
             error: error.message
         });
     }
 });
 
+// Use Render port
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
