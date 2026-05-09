@@ -15,6 +15,8 @@ const groq = new Groq({
 });
 
 app.get("/", (req, res) => {
+	console.log("🔥 HIT /api/chat");
+	console.log("BODY:", req.body);
     res.send("Cognivex+ backend running 🚀");
 	console.log("Message received:", message);
 	console.log(response);
