@@ -37,12 +37,14 @@ async function sendMessage() {
     autoResize();
 
     try {
-        const res = await fetch("https://cognivex-plus-2.onrender.com/api/chat", {
-            method: "POST",
+        fetch("https://cognivex-plus-2.onrender.com/api/chat", {
+    method: "POST",
     headers: {
         "Content-Type": "application/json"
     },
-    body: JSON.stringify({ message: text })
+    body: JSON.stringify({
+        message: userInput
+    })
 });
 
         const data = await res.json();

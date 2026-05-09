@@ -14,13 +14,18 @@ const groq = new Groq({
     apiKey: process.env.GROQ_API_KEY
 });
 
-app.get("/", (req, res) => {
-	console.log("🔥 HIT /api/chat");
-	console.log("BODY:", req.body);
-    res.send("Cognivex+ backend running 🚀");
-	console.log("Message received:", message);
-	console.log(response);
-});
+app.post("/api/chat", async (req, res) => {
+    try {
+        console.log("🔥 HIT /api/chat");
+        console.log("BODY:", req.body);
+
+        const message = req.body?.message;
+
+        if (!message) {
+            return res.status(400).json({
+                error: "Message is required"
+            });
+        }
 
 app.post("/api/chat", async (req, res) => {
     try {
